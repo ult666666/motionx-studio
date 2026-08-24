@@ -1,0 +1,17 @@
+{
+  "_TEMPLATE_NOTICE": "NOT ENABLED. This is a copy-paste TEMPLATE, not a live config. Do NOT rename this file to settings.json. To enable, merge the `hooks` block below into .claude/settings.json (project) or ~/.claude/settings.json (global) yourself, after reading HOOKS-RUNBOOK.md. The absolute path to agentic_ops_guard.py must be made concrete for your machine.",
+  "_WHAT_IT_DOES": "Wires the PreToolUse guard for Bash/Write/Edit so dangerous git/fs commands, Gmail send paths, and secret exposure are blocked, and in-repo artifacts / self-improvement.md touches are warned.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /ABSOLUTE/PATH/TO/MotionX/outreach/agentic_ops/hook_templates/agentic_ops_guard.py"
+          }
+        ]
+      }
+    ]
+  }
+}

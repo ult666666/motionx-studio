@@ -1,0 +1,26 @@
+/node_modules
+/.next
+/out
+/build
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+.vercel
+next-env.d.ts
+
+# Playwright e2e output + TypeScript incremental build cache (regenerated locally)
+/test-results
+/playwright-report
+tsconfig.tsbuildinfo
+
+# Local video-production Python cache
+__pycache__/
+*.py[cod]
+
+# Original camera files — preserved on disk, not shipped (web copies live in public/videos)
+/hf_*.mp4
+/furia_*_master.mp4
+
+# local deploy helper
+/deploy.sh

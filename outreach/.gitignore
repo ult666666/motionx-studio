@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+
+# visual-cold-open: never commit generated assets, reports, raw drafts, or secrets.
+# (By default these are written OUTSIDE the repo under ~/.motionx-outreach/; these
+# rules are a defensive backstop in case an operator points --report-path/--asset-dir
+# at the repo tree by mistake.)
+visual-assets/
+reports/
+*_visual_cold_open_report.csv
+*_visual_cold_open_summary.md
+visual-cold-open-activity-log.csv
+brief_*.json
+preview_*.txt
+prompt_*.txt
+visualbrief_*.md
+sample_*.txt
+batch32_vco_sample_run_*.csv
+batch32_vco_sample_run_*.md
+*.raw.b64url
+motionx_visual_cold_open_*.png
+secrets.env
+*.secret
+gmail_token*.json
+gmail_credentials*.json
+client_secret*.json

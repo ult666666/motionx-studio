@@ -1,0 +1,83 @@
+name: Website Quality (No Deploy)
+
+on:
+  # Always report on PRs and main pushes. A path-filtered required workflow can
+  # remain permanently pending when a change falls outside its filter.
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Production gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # CI certifies release metadata: build with the real production origin so
+      # canonical/OG/JSON-LD/robots/sitemap URLs match what would ship. This is
+      # a public build-time constant, not a secret; the gate fails closed if it
+      # is missing or not exactly this origin. No deploy happens here.
+      NEXT_PUBLIC_SITE_URL: "https://madebymotionx.com"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install ffprobe
+        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run production quality gate
+        run: npm run gate
+
+      # Reuse the gate's production build to produce the machine-readable
+      # release evidence (screenshots + evidence.json) as a CI artifact.
+      - name: Browser verification evidence (production server)
+        run: |
+          ./node_modules/.bin/next start -p 3939 &
+          SERVER_PID=$!
+          # Kill the server on success, failure, or interruption alike.
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          READY=0
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3939 > /dev/null; then
+              READY=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$READY" -ne 1 ]; then
+            echo "::error::Production server on port 3939 never became ready."
+            exit 1
+          fi
+          PLAYWRIGHT_PRODUCTION=1 npm run browser:verify
+
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-quality-${{ github.run_id }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 14

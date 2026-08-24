@@ -1,0 +1,19 @@
+WEBVTT
+
+NOTE
+Conservative non-dialogue captions for the Renewal concept film's
+sound-design track (no dialogue; audible content ends ~14.36s, measured
+with ffmpeg silencedetect/astats). Cue wording and timing are flagged
+for Charles's human review — see docs/asset-integrity.md.
+
+1
+00:00.000 --> 00:07.000
+[Sound design]
+
+2
+00:07.000 --> 00:12.000
+[Sound design continues]
+
+3
+00:12.000 --> 00:14.300
+[Sound design fades]

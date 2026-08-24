@@ -1,0 +1,838 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────
+   MOTIONX DESIGN SYSTEM
+   Dark, futuristic primary world with a warm
+   botanical accent reserved for the Renewal project.
+   ─────────────────────────────────────────────── */
+@theme {
+  --color-ink: #050505; /* near black */
+  --color-soft: #0b0b0d; /* soft black */
+  --color-panel: #101015; /* raised surface */
+  --color-blueblack: #080a14; /* blue-shifted near black (tonal variation) */
+  --color-ivory: #f2efe8; /* warm ivory (primary text) */
+  --color-gray: #a6a6ad; /* muted gray (secondary text) — brightened for contrast */
+  --color-gray-dim: #82828a; /* dimmer gray for tertiary/metadata only */
+  --color-line: #20212a; /* hairline borders */
+
+  --color-accent: #6d7cff; /* electric blue */
+  --color-accent-soft: #8a96ff;
+  --color-magenta: #d65bd6; /* subtle chrome/magenta highlight */
+
+  --color-botanical: #7fa64e; /* green, project-scoped */
+  --color-gold: #c7a24b; /* warm gold, project-scoped */
+
+  --font-display: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* MUST be clip, never hidden: overflow-x hidden makes body a scroll
+       container, which silently captures every view() timeline on the page —
+       body never scrolls, so all scroll-driven animation (process playhead,
+       drawn rules, masked entrances, hero exit grade) freezes at a static
+       geometry-derived progress. clip gives identical overflow protection
+       without creating a scroll container. Same rule for sections that wrap
+       view() consumers: overflow-clip, not overflow-hidden. */
+    overflow-x: clip;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgb(109 124 255 / 18%);
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    /* Ink on the electric accent (~5.8:1); white fails 4.5:1 at body sizes. */
+    color: var(--color-ink);
+  }
+
+  /* Rendered caption cues: restrained, legible contrast over dark cinematic
+     footage — a quiet translucent ink plate, not a branded caption panel. */
+  video::cue {
+    background: rgba(5, 5, 5, 0.78);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  /* Visible, consistent focus ring for keyboard users */
+  :focus-visible {
+    outline: 2px solid var(--color-accent-soft);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Slim, on-brand scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #26262e;
+    border-radius: 999px;
+    border: 2px solid var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #34343f;
+  }
+}
+
+@layer utilities {
+  /* Primary CTA color pairing — resting ivory/ink, hovered electric accent
+     with INK text: #050505 on #6D7CFF is ~5.8:1, while white fails 4.5:1 at
+     CTA sizes. This class owns ONLY the pairing (layout, spacing, and
+     transitions stay at call sites) so future pages can't casually
+     reintroduce the failing white-on-accent combination. */
+  .cta-primary {
+    background-color: var(--color-ivory);
+    color: var(--color-ink);
+  }
+  .cta-primary:hover {
+    background-color: var(--color-accent);
+    color: var(--color-ink);
+  }
+  .cta-primary:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  /* Drawn-underline link primitive — the playhead-scrub gesture applied to
+     inline links. TWO background layers: the accent→magenta line that draws on
+     hover/focus, over a static resting hairline (replaces per-call-site
+     `border-b`; converted call sites must drop their border-b AND any
+     hover:border-* flip so exactly one 1px rule ever renders). Call sites in a
+     project-accent context override --underline-from/--underline-to; call
+     sites with no resting underline set --underline-rest: transparent.
+     NO `color` here (the :where(.label) lesson) and the transition is an
+     explicit property list so it can never silently swallow a call site's
+     colour transition. */
+  .link-underline {
+    background-image:
+      linear-gradient(
+        90deg,
+        var(--underline-from, var(--color-accent)),
+        var(--underline-to, var(--color-magenta))
+      ),
+      linear-gradient(
+        90deg,
+        var(--underline-rest, rgb(255 255 255 / 0.2)),
+        var(--underline-rest, rgb(255 255 255 / 0.2))
+      );
+    background-repeat: no-repeat;
+    background-position:
+      0 100%,
+      0 100%;
+    background-size:
+      0% 1px,
+      100% 1px;
+    transition-property: background-size, color, border-color;
+    transition-duration: 450ms, 300ms, 300ms;
+    transition-timing-function: var(--ease-cinematic), ease, ease;
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size:
+      100% 1px,
+      100% 1px;
+  }
+
+  /* Editorial uppercase metadata label */
+  .label {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.6875rem;
+    line-height: 1;
+  }
+
+  /* Colour is a ZERO-SPECIFICITY default so a `text-*` utility on the same
+     element wins. `.label` lives in this same `utilities` layer and is authored
+     after Tailwind's generated utilities, so an ordinary `color` declaration
+     here tied on specificity and won on source order — silently killing every
+     `text-accent-soft` / `text-ivory` / `text-gray` paired with `.label`. The
+     accent eyebrows had been rendering dim grey sitewide. Keep this in
+     `:where()`; do not fold it back into the block above. */
+  :where(.label) {
+    color: var(--color-gray-dim);
+  }
+
+  /* Legibility halo for copy that sits directly on moving footage. A scrim
+     heavy enough to protect small text on the teaser's brightest beats would
+     flatten the frame, so this darkens only the few pixels around each glyph
+     instead. It is self-cancelling: over the near-black the hero usually runs,
+     an ink-coloured shadow is invisible; it only asserts itself where the
+     footage goes bright. Not decoration — do not use it for type on a solid
+     background. */
+  .over-media {
+    text-shadow:
+      0 1px 2px rgb(5 5 5 / 0.92),
+      0 0 6px rgb(5 5 5 / 0.88),
+      0 0 18px rgb(5 5 5 / 0.72);
+  }
+
+  /* Honest concept status, styled as editorial provenance rather than a
+     promotional badge. Keep this treatment consistent anywhere concept work
+     is introduced. */
+  .concept-mark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    border-left: 1px solid color-mix(in oklab, var(--color-accent) 75%, transparent);
+    padding-inline: 0.65rem;
+    background: color-mix(in oklab, var(--color-accent) 6%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-accent-soft);
+  }
+
+  .project-tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    border-left: 1px solid var(--color-line);
+    padding-inline: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-gray);
+  }
+
+  /* Fluid display headline sizing */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+  }
+
+  .masked-lines,
+  .masked-line,
+  .masked-line__inner {
+    display: block;
+  }
+
+  .masked-line {
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .masked-line__inner {
+      animation: masked-line-enter 900ms var(--ease-cinematic) both;
+      animation-delay: var(--masked-line-delay, 0ms);
+    }
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 1;
+  }
+
+  /* Section gutter helper */
+  .shell {
+    width: 100%;
+    max-width: 84rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 2.5rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .shell {
+      padding-inline: 3.5rem;
+    }
+  }
+
+  /* Scroll-drawn hairline rules — the generalized .process-progress pattern.
+     The element's static, un-gated state is FULLY DRAWN: the hidden
+     scaleX(0)/scaleY(0) state exists only inside the double gate below, so
+     no-support, no-JS, and reduced-motion visitors always see complete rules.
+     Mount on in-flow elements only — a view timeline on a sticky element
+     never progresses. Override the range per mount via --draw-range. */
+  .rule-draw-x {
+    transform-origin: left center;
+  }
+  .rule-draw-y {
+    transform-origin: center top;
+  }
+
+  /* Sanctioned CSS-only entrance for non-headline blocks. Fail-open by
+     construction: the hidden state exists only where the browser itself
+     drives the scroll animation, so content is never re-hidden for no-JS,
+     no-support, or reduced-motion visitors (the anti-pattern CLAUDE.md
+     removed was dozens of identical JS fades — keep this under ~6 mounts
+     sitewide and never on MaskedLines headlines). */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .rule-draw-x {
+        animation: rule-draw-x linear both;
+        animation-timeline: view();
+        animation-range: var(--draw-range, entry 15% cover 45%);
+      }
+      .rule-draw-y {
+        animation: rule-draw-y linear both;
+        animation-timeline: view();
+        animation-range: var(--draw-range, entry 10% cover 60%);
+      }
+      .reveal-soft {
+        animation: reveal-soft-rise both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 40%;
+      }
+    }
+  }
+
+  /* Native-disclosure unfold. Chromium animates ::details-content height +
+     opacity; engines without interpolate-size keep their native snap — the
+     rule is dropped wholesale where ::details-content is unknown. `overflow:
+     clip` bounds the unfold; the clip margin clears the 2px focus outline +
+     3px offset on chips inside. interpolate-size is scoped to the details
+     element, never :root. */
+  .details-unfold {
+    interpolate-size: allow-keywords;
+  }
+  .details-unfold::details-content {
+    opacity: 0;
+    block-size: 0;
+    overflow: clip;
+    overflow-clip-margin: 6px;
+  }
+  /* The unfold transition is gated explicitly: the global reduced-motion
+     clamp's selector list (*, *::before, *::after) cannot match the
+     ::details-content pseudo-element, so relying on it would animate the
+     unfold for reduced-motion visitors. Outside the gate, disclosures keep
+     their native instant snap. */
+  @media (prefers-reduced-motion: no-preference) {
+    .details-unfold::details-content {
+      transition:
+        content-visibility 300ms allow-discrete,
+        opacity 300ms var(--ease-cinematic),
+        block-size 300ms var(--ease-cinematic);
+    }
+  }
+  .details-unfold[open]::details-content {
+    opacity: 1;
+    block-size: auto;
+  }
+
+  /* Signature-engagement band breath — tonal only, resting ≤4% / hover ≤8%,
+     never a promotional treatment. */
+  .signature-band {
+    transition: background-color 400ms var(--ease-cinematic);
+  }
+  .signature-band:has(a:hover, a:focus-visible) {
+    background-color: color-mix(in oklab, var(--color-accent) 7%, transparent);
+  }
+
+  /* Contact form: the focused field's label lights up. Scoped to the field
+     wrapper so it can never leak into .label call sites elsewhere. */
+  .form-field > label {
+    transition: color 300ms var(--ease-cinematic);
+  }
+  .form-field:focus-within > label {
+    color: var(--color-accent-soft);
+  }
+
+  /* Media-control microinteraction: the border warms toward the surrounding
+     project accent on hover and the control presses in slightly. Border and
+     transform only — never the focus indicator, never a filter. Falls back to
+     the global electric blue where no --project-accent scope is set
+     (registered initial). */
+  .media-control {
+    transition-property: border-color, background-color, transform;
+    transition-duration: 300ms, 300ms, 150ms;
+    transition-timing-function: ease, ease, var(--ease-cinematic);
+  }
+  .media-control:hover {
+    border-color: color-mix(
+      in oklab,
+      var(--project-accent) 45%,
+      rgb(255 255 255 / 0.15)
+    );
+  }
+  .media-control:active {
+    transform: scale(0.96);
+  }
+
+  /* Ambient screen light behind the active film in the edit bay — keyed to
+     the registered --project-accent so it cross-fades with the panel's 500ms
+     accent transition when the visitor switches films. A static gradient
+     layer only: no filter, no animation, and it paints behind the media
+     stack (the stage header and media wrapper are positioned above it). */
+  .stage-ambient {
+    background: radial-gradient(
+      85% 75% at 50% 42%,
+      color-mix(in oklab, var(--project-accent) 9%, transparent),
+      transparent 78%
+    );
+  }
+
+  /* Loop-progress ring around the hero reel's play control. Reads
+     --reel-progress (registered below) from the button; the ring is purely
+     decorative telemetry driven by real playback time. Engines without
+     registered-property transitions render discrete ~250ms steps, which is
+     acceptable; with the video paused the progress is 0 and the ring is
+     invisible. The transition list restates .media-control's properties
+     because the two classes share the hero play button and whichever rule is
+     authored later would otherwise drop the other's transitions — this rule
+     must stay AFTER .media-control in this layer. */
+  .reel-ring {
+    position: relative;
+    transition-property: --reel-progress, border-color, background-color, transform;
+    transition-duration: 260ms, 300ms, 300ms, 150ms;
+    transition-timing-function: linear, ease, ease, var(--ease-cinematic);
+  }
+  .reel-ring::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    background: conic-gradient(
+      var(--color-accent-soft) calc(var(--reel-progress) * 360deg),
+      transparent 0deg
+    );
+    mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - 2px),
+      #000 calc(100% - 1.5px)
+    );
+    pointer-events: none;
+    opacity: 0.9;
+  }
+
+  /* Chrome sweep for the logotype X. Layer 1 is a mostly-transparent
+     specular band parked outside the resting window (0–40% of a 250% tile),
+     layer 2 is the original gradient byte-for-byte — so the resting paint is
+     structurally identical to the previous inline style. Hover/focus on the
+     wrapping link slides the band through once; the global reduced-motion
+     clamp makes the jump instant (band never visible). */
+  .logotype-x {
+    background-image:
+      linear-gradient(
+        120deg,
+        transparent 0%,
+        transparent 40%,
+        rgb(255 255 255 / 0.45) 50%,
+        transparent 60%,
+        transparent 100%
+      ),
+      linear-gradient(135deg, #8a96ff 0%, #6d7cff 45%, #d65bd6 100%);
+    background-size:
+      250% 100%,
+      100% 100%;
+    background-position:
+      0% 0%,
+      0% 0%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: background-position 900ms var(--ease-cinematic);
+  }
+  :where(a:hover, a:focus-visible) .logotype-x {
+    background-position:
+      100% 0%,
+      0% 0%;
+  }
+}
+
+/* Masked entrances stay position-only: several MaskedLines call sites wrap
+   to multiple lines under text-balance at narrow widths, and animating
+   letter-spacing there can flip the chosen line break mid-entrance. The
+   film-title tracking settle lives ONLY in hero-line-enter, whose two lines
+   are verified single-line at every breakpoint. */
+@keyframes masked-line-enter {
+  from {
+    transform: translateY(112%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.875rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero-only film-title tracking settle: letters tighten from a slightly
+   looser -0.02em into .display's resting value. The `to` value MUST stay
+   exactly equal to .display's -0.035em or the headline snaps at animation
+   end; keep this settle OFF any keyframes used by wrap-prone masked lines. */
+@keyframes hero-line-enter {
+  from {
+    transform: translateY(108%);
+    letter-spacing: -0.02em;
+  }
+  to {
+    transform: translateY(0);
+    letter-spacing: -0.035em;
+  }
+}
+
+/* At the narrow wrap threshold, Geist resolves the supporting line from four
+   lines to three. Reserve the fallback geometry so the bottom-aligned hero
+   shell does not jump when the webfont swaps in. */
+@media (min-width: 378px) and (max-width: 390px) {
+  .hero-supporting-copy {
+    min-block-size: 6.5rem;
+  }
+}
+
+@keyframes selected-work-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-enter {
+    animation: hero-enter-up 700ms var(--ease-cinematic) both;
+    animation-delay: var(--hero-delay, 0ms);
+  }
+
+  .hero-line__inner {
+    animation: hero-line-enter 850ms var(--ease-cinematic) both;
+    animation-delay: var(--hero-delay, 0ms);
+  }
+
+  .selected-work-panel {
+    animation: selected-work-panel-enter 300ms var(--ease-cinematic) both;
+  }
+
+  /* Two-phase edit-bay settle: stage chrome first, meta grid +90ms. */
+  .selected-work-panel-meta {
+    animation: selected-work-panel-enter 300ms var(--ease-cinematic) both;
+    animation-delay: 90ms;
+  }
+
+  /* One-shot 18s push-in on the hero's inner media group (picture + video
+     share the geometry). Explicitly gated — the global reduced-motion clamp
+     keeps animation fill, so an un-gated `forwards` push-in would SNAP
+     reduced-motion visitors to the cropped 1.045 end state. Gating here keeps
+     today's exact framing for them. Not a loop: one slow settle, then still. */
+  .hero-media-pushin {
+    animation: hero-media-pushin 18s var(--ease-cinematic) forwards;
+  }
+
+  /* Mobile-menu entrance — authored entirely inside this gate (INCLUDING the
+     stagger delays) because the global clamp zeroes durations but NOT
+     animation-delay: a delayed both-fill entrance outside this gate would
+     hold its hidden state under reduced motion. Close stays instant and the
+     dialog's focus/inert orchestration is untouched — this is a paint-only
+     layer over unchanged interactivity. */
+  .menu-overlay-enter {
+    animation: menu-overlay-enter 320ms var(--ease-cinematic) both;
+  }
+  .menu-item-enter {
+    animation: masked-line-enter 550ms var(--ease-cinematic) both;
+    animation-delay: calc(var(--menu-i, 0) * 55ms);
+  }
+  .menu-cta-enter {
+    animation: hero-enter-up 500ms var(--ease-cinematic) both;
+    animation-delay: 300ms;
+  }
+
+  /* Settle entrance for small keyed panels (pilot slate, contact helper). */
+  .settle-enter {
+    animation: settle-enter 400ms var(--ease-cinematic) both;
+  }
+}
+
+@keyframes hero-media-pushin {
+  to {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes menu-overlay-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes settle-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes rule-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes rule-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes reveal-soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+/* Hero exit grade: as the hero leaves the viewport the media group drifts and
+   an ink overlay grades the frame down into the studio thesis. The overlay's
+   authored static state is transparent (opacity-0 class at the call site) —
+   the fade exists only inside this double gate, so no engine can ever dim the
+   hero permanently. Both effects are transform/opacity only; no filter ever
+   touches the playing video. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-exit-drift {
+      animation: hero-exit-drift linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    .hero-exit-dim {
+      animation: hero-exit-dim linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+  }
+}
+
+@keyframes hero-exit-drift {
+  to {
+    transform: translateY(6%) scale(1.02);
+  }
+}
+
+@keyframes hero-exit-dim {
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* Header transport playhead on the root scroll timeline. The JS rAF fallback
+   in navigation.tsx is gated behind a character-identical CSS.supports check
+   so the two mechanisms never double-drive the transform. */
+@supports (animation-timeline: scroll(root)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-playhead {
+      animation: nav-playhead-draw linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes nav-playhead-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Process markers arm as the playhead passes. Static base stays bg-accent
+   (armed) — the line-coloured resting state exists only inside the gate. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .process-marker {
+      animation: process-marker-arm linear both;
+      animation-timeline: view();
+      animation-range: entry 40% entry 90%;
+    }
+  }
+}
+
+@keyframes process-marker-arm {
+  from {
+    background-color: var(--color-line);
+  }
+  to {
+    background-color: var(--color-accent);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .masked-lines {
+      view-timeline-name: --masked-lines-view;
+      view-timeline-axis: block;
+    }
+
+    .masked-line__inner {
+      animation-timeline: --masked-lines-view;
+      animation-range: entry 0% cover 28%;
+      animation-delay: 0s;
+    }
+  }
+}
+
+/* Project-accent cross-fade: the persistent edit-bay article transitions its
+   registered --project-accent between films, so every var() consumer (corner
+   tick, capability label, playhead, case-link underline) grades to the next
+   film's colour instead of snapping. Engines without registered-property
+   transitions snap — today's behavior. */
+#selected-work-panel {
+  transition: --project-accent 500ms var(--ease-cinematic);
+}
+
+@keyframes process-progress-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .process-sequence {
+      view-timeline-name: --process-sequence;
+      view-timeline-axis: block;
+    }
+
+    .process-progress {
+      transform: scaleY(0);
+      animation: process-progress-draw linear both;
+      animation-timeline: --process-sequence;
+      animation-range: entry 10% cover 72%;
+    }
+  }
+}
+
+/* Reduced-motion: neutralise transforms/animations the library may apply */
+@media (prefers-reduced-motion: reduce) {
+  .selected-work-panel,
+  .selected-work-panel-meta {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Registered custom properties — must stay at top level, outside every
+   @layer. POLICY: every registered property must have a static fallback
+   authored first (unsupported engines snap to end states identical to
+   today); transitions on registered properties count as animation, so they
+   live behind a no-preference gate or rely on the global reduced-motion
+   clamp; and they must never drive backdrop-filter or any filter on a
+   playing video. */
+
+/* Per-film accent inside the edit bay. Registered <color> so the persistent
+   panel can transition it between films; inherits so every descendant var()
+   consumer follows. */
+@property --project-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #6d7cff;
+}
+
+/* Hero reel loop progress (0–1), set imperatively from real playback time.
+   MUST inherit: registered non-inheriting custom properties do not propagate
+   into pseudo-elements, and the ring is drawn on the button's ::after — with
+   inherits: false the ring would compute the initial 0 forever. */
+@property --reel-progress {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Font-fallback metrics — must stay at top level, outside every @layer.
+
+   next/font generates one metric-matched fallback for Geist Sans and sources it
+   from `local("Arial")` alone. Any system without Arial — a stock Linux desktop,
+   and the CI runner — never resolves that face, so the ascent/descent/size-adjust
+   overrides that keep the fallback the same size as Geist are silently dropped
+   and first paint wraps to a different number of lines than the webfont. It
+   showed up as a 56px jump in the 390px hero copy on CI, but it is a real
+   layout shift for those visitors, not a test artifact.
+
+   Re-declaring the same family with the same metrics over an Arial-compatible
+   source list restores the override where Arial is missing. Liberation Sans and
+   Arimo are metric-compatible with Arial by design. Arial stays first, so
+   nothing changes on systems that already had it. Keep these numbers in sync
+   with next/font's generated rule if the Geist version ever changes. */
+@font-face {
+  font-family: "GeistSans Fallback";
+  src:
+    local("Arial"),
+    local("Liberation Sans"),
+    local("Arimo"),
+    local("Helvetica Neue"),
+    local("Helvetica"),
+    local("Nimbus Sans");
+  ascent-override: 94.56%;
+  descent-override: 27.76%;
+  line-gap-override: 0%;
+  size-adjust: 106.28%;
+}

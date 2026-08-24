@@ -1,0 +1,38 @@
+WEBVTT
+
+NOTE
+Conservative non-dialogue captions for the FURIA concept film's sound-design
+track (no dialogue). Cue boundaries follow measured level changes only — RMS
+envelope sampled in 0.5s windows from the shipped web copy: quiet open rising
+by ~19 dB at 2s, a dip near 12s, the loudest sustained passage 23.5-26.4s, a
+brief drop to -39 dB at ~26.5s, then a resumed tail decaying to silence by
+~29.6s. No sound is captioned that was inferred from the picture. Cue wording
+and timing are flagged for Charles's human review — see docs/asset-integrity.md.
+
+1
+00:00.000 --> 00:02.000
+[Sound design begins]
+
+2
+00:02.000 --> 00:12.000
+[Sound design]
+
+3
+00:12.000 --> 00:13.000
+[Sound design drops]
+
+4
+00:13.000 --> 00:23.500
+[Sound design continues]
+
+5
+00:23.500 --> 00:26.400
+[Sound design intensifies]
+
+6
+00:26.400 --> 00:27.000
+[Sound design cuts out]
+
+7
+00:27.000 --> 00:29.600
+[Sound design returns, then fades]

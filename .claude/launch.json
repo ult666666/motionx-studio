@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "motionx",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "cd /Users/prince/Desktop/MotionX && export PATH=/opt/anaconda3/envs/motionx/bin:$PATH && exec ./node_modules/.bin/next dev -p 3939"],
+      "port": 3939
+    }
+  ]
+}
