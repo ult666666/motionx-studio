@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { isDesktopFilm, mediaTest } from "./media-selection";
 
 const PUBLIC_EMAIL = "hello@madebymotionx.com";
 const WORK_PROJECT_TITLES = {
@@ -1977,10 +1978,11 @@ test.describe("Responsive media delivery", () => {
     return requests;
   }
 
-  test("390px selects only the mobile derivatives across every surface", async ({ page }) => {
+  mediaTest("390px selects only the mobile derivatives across every surface", async ({
+    page, mp4Requests: requests,
+  }) => {
     test.setTimeout(60_000);
     await page.setViewportSize({ width: 390, height: 844 });
-    const requests = trackMp4(page);
     await page.goto("/");
     await expect
       .poll(() =>
@@ -2014,9 +2016,7 @@ test.describe("Responsive media delivery", () => {
     expect(requests.some((p) => p.endsWith("/furia-mobile.b39c4813f6bb.mp4"))).toBe(true);
     expect(requests.some((p) => p.endsWith("/agentic-trading-mobile.4610f3f19a82.mp4"))).toBe(true);
     // In one stable mobile session, NO desktop copy may be requested.
-    const desktopRequests = requests.filter((p) =>
-      /\/(agentic-trading-hero|renewal-botanical|liquid-signal|furia|agentic-trading)\.[0-9a-f]{12}\.mp4$/.test(p),
-    );
+    const desktopRequests = requests.filter(isDesktopFilm);
     expect(desktopRequests, desktopRequests.join("\n")).toEqual([]);
   });
 
