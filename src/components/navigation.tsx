@@ -79,6 +79,21 @@ export function Navigation() {
     closeMenu({ restoreToggle: pathname === href });
   };
 
+  // An incoming fragment must land immediately, including before hydration.
+  // Enable animated anchor navigation when the visitor actually follows a link.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (root.dataset.scrollBehavior === "smooth") return;
+
+    const enableSmoothScroll = (event: Event) => {
+      if (!(event.target instanceof Element) || !event.target.closest('a[href*="#"]')) return;
+      root.dataset.scrollBehavior = "smooth";
+      document.removeEventListener("click", enableSmoothScroll, true);
+    };
+    document.addEventListener("click", enableSmoothScroll, true);
+    return () => document.removeEventListener("click", enableSmoothScroll, true);
+  }, []);
+
   // One frame owns all scroll-derived navigation state. Read layout first,
   // then write the playhead transform so active-section tracking never follows
   // an interleaved DOM write from a second scroll loop.

@@ -1378,6 +1378,33 @@ test.describe("Contact flow", () => {
     ).toHaveCount(0);
   });
 
+  test("a cold services link lands before hydration and keeps its referral", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    let resumeScripts!: () => void;
+    const scriptsReady = new Promise<void>((resolve) => { resumeScripts = resolve; });
+    await page.route(/\/_next\/static\/.*\.js(?:\?|$)/, async (route) => {
+      await scriptsReady;
+      await route.continue();
+    });
+
+    const referral = page.getByRole("link", { name: "Discuss a product film", exact: true });
+    try {
+      await page.goto("/#services", { waitUntil: "commit" });
+      await expect(referral).toBeVisible();
+      await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
+      await referral.click({ noWaitAfter: true });
+      await expect(page).toHaveURL(/\/\?type=Product%20Film#contact$/);
+    } finally {
+      resumeScripts();
+    }
+
+    await expect(page.locator('select[name="project-type"]')).toHaveValue("Product Film");
+    await referral.click();
+    await expect(page.locator("html")).toHaveCSS("scroll-behavior", "smooth");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
+  });
+
   test("history removal resets URL preselection but preserves an explicit choice", async ({
     page,
   }) => {
