@@ -202,28 +202,13 @@ test("primary CTA keeps WCAG AA contrast in the hovered state", async ({ page })
   expect(contrastRatio(resting.color, resting.background)).toBeGreaterThanOrEqual(4.5);
 
   await cta.hover();
-  // Wait out the color transition: sample until two consecutive reads agree.
-  let previous = "";
-  await expect
-    .poll(async () => {
-      const current = await cta.evaluate(
-        (element) => getComputedStyle(element).backgroundColor,
-      );
-      const settled = current === previous;
-      previous = current;
-      return settled;
-    })
-    .toBe(true);
+  // Two identical samples can both fall before a delayed transition starts.
+  await expect(cta).toHaveCSS("background-color", "rgb(109, 124, 255)");
 
   const hovered = await cta.evaluate((element) => {
     const style = getComputedStyle(element);
     return { color: style.color, background: style.backgroundColor };
   });
-  // The hovered background must be exactly the electric accent (#6D7CFF) —
-  // not merely "different" — so the test can't pass on a broken hover or a
-  // drifted palette. Every primary CTA shares the same .cta-primary pairing,
-  // so this one canonical instance guards the treatment on all routes.
-  expect(hovered.background).toBe("rgb(109, 124, 255)");
   expect(contrastRatio(hovered.color, hovered.background)).toBeGreaterThanOrEqual(4.5);
 });
 
