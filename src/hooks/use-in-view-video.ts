@@ -70,7 +70,9 @@ export function useInViewVideo<T extends HTMLVideoElement>(
           // Autoplay can be blocked — fail gracefully, poster stays visible.
           p.catch(() => setIsPlaying(false));
         }
-      } else {
+      } else if (!el.paused) {
+        // pause() can start resource selection on an empty media element.
+        // Leave a newly mounted, poster-only player idle until sources are ready.
         el.pause();
       }
     };

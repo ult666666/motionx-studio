@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { isDesktopFilm, mediaTest } from "./media-selection";
 
 const PUBLIC_EMAIL = "hello@madebymotionx.com";
 const WORK_PROJECT_TITLES = {
@@ -1377,6 +1378,33 @@ test.describe("Contact flow", () => {
     ).toHaveCount(0);
   });
 
+  test("a cold services link lands before hydration and keeps its referral", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    let resumeScripts!: () => void;
+    const scriptsReady = new Promise<void>((resolve) => { resumeScripts = resolve; });
+    await page.route(/\/_next\/static\/.*\.js(?:\?|$)/, async (route) => {
+      await scriptsReady;
+      await route.continue();
+    });
+
+    const referral = page.getByRole("link", { name: "Discuss a product film", exact: true });
+    try {
+      await page.goto("/#services", { waitUntil: "commit" });
+      await expect(referral).toBeVisible();
+      await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
+      await referral.click({ noWaitAfter: true });
+      await expect(page).toHaveURL(/\/\?type=Product%20Film#contact$/);
+    } finally {
+      resumeScripts();
+    }
+
+    await expect(page.locator('select[name="project-type"]')).toHaveValue("Product Film");
+    await referral.click();
+    await expect(page.locator("html")).toHaveCSS("scroll-behavior", "smooth");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.locator("html")).toHaveCSS("scroll-behavior", "auto");
+  });
+
   test("history removal resets URL preselection but preserves an explicit choice", async ({
     page,
   }) => {
@@ -1977,10 +2005,11 @@ test.describe("Responsive media delivery", () => {
     return requests;
   }
 
-  test("390px selects only the mobile derivatives across every surface", async ({ page }) => {
+  mediaTest("390px selects only the mobile derivatives across every surface", async ({
+    page, mp4Requests: requests,
+  }) => {
     test.setTimeout(60_000);
     await page.setViewportSize({ width: 390, height: 844 });
-    const requests = trackMp4(page);
     await page.goto("/");
     await expect
       .poll(() =>
@@ -2014,9 +2043,7 @@ test.describe("Responsive media delivery", () => {
     expect(requests.some((p) => p.endsWith("/furia-mobile.b39c4813f6bb.mp4"))).toBe(true);
     expect(requests.some((p) => p.endsWith("/agentic-trading-mobile.4610f3f19a82.mp4"))).toBe(true);
     // In one stable mobile session, NO desktop copy may be requested.
-    const desktopRequests = requests.filter((p) =>
-      /\/(agentic-trading-hero|renewal-botanical|liquid-signal|furia|agentic-trading)\.[0-9a-f]{12}\.mp4$/.test(p),
-    );
+    const desktopRequests = requests.filter(isDesktopFilm);
     expect(desktopRequests, desktopRequests.join("\n")).toEqual([]);
   });
 
